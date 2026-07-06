@@ -1,2 +1,2 @@
 # KittyyOS
-Operating System
+Not ready yet
