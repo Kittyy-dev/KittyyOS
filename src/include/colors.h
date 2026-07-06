@@ -1,0 +1,12 @@
+#define RESET        "\033[0m"
+
+#define BLACK        "\033[0;30m"
+#define RED          "\033[0;31m"
+#define GREEN        "\033[1;32m"
+#define BROWN        "\033[0;33m"
+#define BLUE         "\033[0;34m"
+#define MAGENTA      "\033[1;35m"
+#define CYAN         "\033[1;36m"
+#define WHITE        "\033[1;37m"
+#define YELLOW       "\033[1;33m"
+#define GRAY         "\033[0;37m"
