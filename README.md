@@ -1,2 +1,0 @@
-# KittyyOS
-Not ready yet
