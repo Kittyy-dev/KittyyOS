@@ -25,7 +25,6 @@ static volatile int kbd_tail = 0;
 bool keyboard_enabled = false;
 int ignore_first_enter = 0;
 
-/* Sondertasten */
 #define KEY_UP     ((char)0xF1)
 #define KEY_DOWN   ((char)0xF2)
 #define KEY_LEFT   ((char)0xF3)
@@ -225,27 +224,19 @@ void shell_readline(char *out, int max) {
 
             return;
         }
-
-
-        /* LINKS */
+        
         if (c == KEY_LEFT) {
             continue;
         }
 
-
-        /* RECHTS */
         if (c == KEY_RIGHT) {
             continue;
         }
 
-
-        /* HOCH */
         if (c == KEY_UP) {
             continue;
         }
-
-
-        /* RUNTER */
+        
         if (c == KEY_DOWN) {
             continue;
         }
