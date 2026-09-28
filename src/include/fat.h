@@ -1,0 +1,126 @@
+#pragma once
+#include <stdint.h>
+#include <vfs.h>
+
+#define ATA_DATA        0x1F0
+#define ATA_ERROR       0x1F1
+#define ATA_SECCOUNT    0x1F2
+#define ATA_LBA_LOW     0x1F3
+#define ATA_LBA_MID     0x1F4
+#define ATA_LBA_HIGH    0x1F5
+#define ATA_DRIVE       0x1F6
+#define ATA_STATUS      0x1F7
+#define ATA_CMD         0x1F7
+
+#define ATA_CMD_READ    0x20
+#define ATA_CMD_WRITE   0x30
+
+#pragma pack(push, 1)
+
+extern uint32_t* fat_table;
+
+typedef void (*program_entry_t)(void);
+
+typedef struct {
+    uint8_t* data;
+    uint32_t size;
+} LoadedFile;
+
+LoadedFile fat32_load_file(const char* path);
+
+typedef struct {
+    uint8_t  jmpBoot[3];
+    uint8_t  OEMName[8];
+    uint16_t bytesPerSector;
+    uint8_t  sectorsPerCluster;
+    uint16_t reservedSectors;
+    uint8_t  numFATs;
+    uint16_t rootEntryCount;
+    uint16_t totalSectors16;
+    uint8_t  media;
+    uint16_t FATSize16;
+    uint16_t sectorsPerTrack;
+    uint16_t numHeads;
+    uint32_t hiddenSectors;
+    uint32_t totalSectors32;
+
+    uint32_t FATSize32;
+    uint16_t extFlags;
+    uint16_t FSVersion;
+    uint32_t rootCluster;
+    uint16_t FSInfo;
+    uint16_t backupBootSector;
+    uint8_t  reserved[12];
+    uint8_t  driveNumber;
+    uint8_t  reserved1;
+    uint8_t  bootSignature;
+    uint32_t volumeID;
+    uint8_t  volumeLabel[11];
+    uint8_t  fileSystemType[8];
+} FAT32_BootSector;
+
+typedef struct __attribute__((packed)) {
+    uint8_t  name[11];
+    uint8_t  attr;
+    uint8_t  ntres;
+    uint8_t  crtTimeTenth;
+    uint16_t crtTime;
+    uint16_t crtDate;
+    uint16_t lastAccessDate;
+    uint16_t firstClusterHigh;
+    uint16_t writeTime;
+    uint16_t writeDate;
+    uint16_t firstClusterLow;
+    uint32_t fileSize;
+} FAT32_DirEntry;
+
+typedef char static_assert_FAT32_DirEntry_size[(sizeof(FAT32_DirEntry) == 32) ? 1 : -1];
+
+typedef struct {
+    uint8_t order;
+    uint16_t name1[5];
+    uint8_t attr;
+    uint8_t type;
+    uint8_t checksum;
+    uint16_t name2[6];
+    uint16_t zero;
+    uint16_t name3[2];
+} __attribute__((packed)) FAT32_LFN_Entry;
+
+#pragma pack(pop)
+
+typedef struct {
+    uint32_t startCluster;
+    uint32_t size;
+} FileHandle;
+
+extern FAT32_BootSector bpb;
+extern uint32_t* fat_ram;
+extern uint8_t* dir_buf;
+extern filesystem_t fat32_fs;
+
+void fat32_mount(uint32_t part_lba_start);
+void init_fat32(FAT32_BootSector* b);
+
+FileHandle open_file(const char* filename11, FAT32_BootSector* b, uint32_t* fat, uint8_t* dirBuffer);
+
+int read_file(FileHandle fh, FAT32_BootSector* b, uint32_t* fat, uint8_t* out);
+
+int write_file(FileHandle fh, FAT32_BootSector* b, uint32_t* fat, const void* data, uint32_t size);
+
+void fat32_ls_root(void);
+
+uint32_t fat32_cluster_to_lba(uint32_t cluster);
+uint32_t get_next_cluster(uint32_t cluster, uint32_t* fat);
+bool fat32_find_entry(uint32_t dir_cluster, const char* name, FAT32_DirEntry* out);
+void fat32_get_current_dir_name(char* out);
+bool fat32_load_hostname();
+bool fat32_resolve_dir(const char* path, uint32_t* out_cluster);
+int split_path(const char* path, char parts[][64], int max_parts);
+void fat32_to_upper(char* s);
+bool fat32_resolve_path(const char* path, uint32_t* out_dir_cluster, char* out_filename);
+int fat32_find_entry_index(uint32_t dir_cluster, const char* name, FAT32_DirEntry* out);
+void fat32_populate_directory(vfs_node_t* parent, uint32_t cluster);
+void fat32_umount(void *internal);
+
+extern char g_hostname[64];
