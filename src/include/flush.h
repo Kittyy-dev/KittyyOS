@@ -1,0 +1,1 @@
+void flush(char* buf, int size);
